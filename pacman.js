@@ -21,6 +21,8 @@ var NONE        = 4,
     DYING       = 10,
     Pacman      = {};
 
+
+
 Pacman.FPS = 30;
 
 Pacman.Ghost = function (game, map, colour) {
@@ -278,14 +280,18 @@ Pacman.Ghost = function (game, map, colour) {
 
 Pacman.User = function (game, map) {
     
-    var position  = null,
+    var userImg = new Image(),
+        imgCount = 0,
+        position  = null,
         direction = null,
         eaten     = null,
+
         due       = null, 
         lives     = null,
         score     = 5,
         keyMap    = {};
-    
+
+    userImg.src = 'pac-man.png';
     keyMap[KEY.ARROW_LEFT]  = LEFT;
     keyMap[KEY.ARROW_UP]    = UP;
     keyMap[KEY.ARROW_RIGHT] = RIGHT;
@@ -457,58 +463,37 @@ Pacman.User = function (game, map) {
         return rem > 3 || rem < 7;
     };
 
-    function calcAngle(dir, pos) { 
-        if (dir == RIGHT && (pos.x % 10 < 5)) {
-            return {"start":0.25, "end":1.75, "direction": false};
-        } else if (dir === DOWN && (pos.y % 10 < 5)) { 
-            return {"start":0.75, "end":2.25, "direction": false};
-        } else if (dir === UP && (pos.y % 10 < 5)) { 
-            return {"start":1.25, "end":1.75, "direction": true};
-        } else if (dir === LEFT && (pos.x % 10 < 5)) {             
-            return {"start":0.75, "end":1.25, "direction": true};
-        }
-        return {"start":0, "end":2, "direction": false};
-    };
-
     function drawDead(ctx, amount) { 
 
         var size = map.blockSize, 
-            half = size / 2;
+            half = size / 2,
+            posX = ((position.x/10) * size) + half,
+            posY = ((position.y/10) * size) + half;
 
         if (amount >= 1) { 
             return;
         }
 
-        ctx.fillStyle = "#FFFF00";
-        ctx.beginPath();        
-        ctx.moveTo(((position.x/10) * size) + half, 
-                   ((position.y/10) * size) + half);
-        
-        ctx.arc(((position.x/10) * size) + half, 
-                ((position.y/10) * size) + half,
-                half, 0, Math.PI * 2 * amount, true); 
-        
+        ctx.fillStyle = "#FF0000";
+
+        ctx.rect(posX-6, posY-9, 12, 18);
+
         ctx.fill();    
     };
 
     function draw(ctx) { 
 
-        var s     = map.blockSize, 
-            angle = calcAngle(direction, position);
+        var s     = map.blockSize,
+            posX = ((position.x/10) * s) + s / 2,
+            posY = ((position.y/10) * s) + s / 2;
 
-        ctx.fillStyle = "#FFFF00";
+        ctx.drawImage(userImg, 16*imgCount, 0, 16, 18, posX - 9, posY - 9, 18, 18);
 
-        ctx.beginPath();        
-
-        ctx.moveTo(((position.x/10) * s) + s / 2,
-                   ((position.y/10) * s) + s / 2);
-        
-        ctx.arc(((position.x/10) * s) + s / 2,
-                ((position.y/10) * s) + s / 2,
-                s / 2, Math.PI * angle.start, 
-                Math.PI * angle.end, angle.direction); 
-        
-        ctx.fill();    
+        if(imgCount === 3) {
+            imgCount = 0;
+        } else {
+            imgCount += 1;
+        }
     };
     
     initUser();
@@ -773,6 +758,7 @@ Pacman.Audio = function(game) {
 var PACMAN = (function () {
 
     var state        = WAITING,
+        userImg = new Image(),
         audio        = null,
         ghosts       = [],
         ghostSpecs   = ["#00FFDE", "#FF0000", "#FFB8DE", "#FFB847"],
@@ -788,6 +774,8 @@ var PACMAN = (function () {
         map          = null,
         user         = null,
         stored       = null;
+
+    userImg.src = 'pac-man.png';
 
     function getTick() { 
         return tick;
@@ -883,15 +871,7 @@ var PACMAN = (function () {
         ctx.fillStyle = "#FFFF00";
 
         for (var i = 0, len = user.getLives(); i < len; i++) {
-            ctx.fillStyle = "#FFFF00";
-            ctx.beginPath();
-            ctx.moveTo(150 + (25 * i) + map.blockSize / 2,
-                       (topLeft+1) + map.blockSize / 2);
-            
-            ctx.arc(150 + (25 * i) + map.blockSize / 2,
-                    (topLeft+1) + map.blockSize / 2,
-                    map.blockSize / 2, Math.PI * 0.25, Math.PI * 1.75, false);
-            ctx.fill();
+            ctx.drawImage(userImg, 0, 0, 16, 18, (150 + (25 * i) + map.blockSize / 2) - 9, ((topLeft+1) + map.blockSize / 2) - 9, 18, 18);
         }
 
         ctx.fillStyle = !soundDisabled() ? "#00FF00" : "#FF0000";
@@ -1032,7 +1012,7 @@ var PACMAN = (function () {
         var i, len, ghost,
             blockSize = wrapper.offsetWidth / 19,
             canvas    = document.createElement("canvas");
-        
+
         canvas.setAttribute("width", (blockSize * 19) + "px");
         canvas.setAttribute("height", (blockSize * 22) + 30 + "px");
 
